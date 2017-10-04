@@ -269,8 +269,8 @@ class ds_pbr_addon_prefs(AddonPreferences):
     bl_idname = __name__
 
     option_ao_map = BoolProperty(
-        name="Ambient Occlussion",
-        description="Add Ambient Occlussion Map via RGBMIX Node",
+        name="Ambient Occlusion",
+        description="Add Ambient Occlusion Map via RGB Mix Node",
         default = False
     )
     option_metallic_map = BoolProperty(
@@ -354,8 +354,8 @@ class ds_pbr_material_options(PropertyGroup):
         self["_option_metallic_map"] = value
 
     option_ao_map = BoolProperty(
-        name="Ambient Occlussion",
-        description="Add Ambient Occlussion Map via RGBMIX Node",
+        name="Ambient Occlusion",
+        description="Add Ambient Occlusion Map via RGB Mix Node",
         get = get_option_ao_map,
         set = set_option_ao_map
     )
