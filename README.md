@@ -1,6 +1,19 @@
 # Blender Addon PBR
 
-Provides a material panel that allows the creation of Metallic/Roughness or Specular/Gloss Nodes using the Principled BSDF shader.
+Provides a material panel that creates Metallic/Roughness or Specular/Gloss Nodes using the Principled BSDF shader. 
+
+# Features
+
+- Utilises Standard Blender Nodes and Shader
+- Optional Auto Textures
+- Optional Ambient Occlusion Map
+- Optional Metallic Map
+
+# Min Blender Version
+
+Blender 2.79+
+
+# Screenshots
 
 ![alt](/screenshots/pbr_prefs.png)
 
