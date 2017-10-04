@@ -177,8 +177,6 @@ class ds_pbr_nodes_metallic_roughness(Operator):
 
         ds_pbr_auto_textures.execute(self,context)
 
-        addon_updater_ops.update_notice_box_ui(self, context)
-
         return {'FINISHED'}
 
 class ds_pbr_nodes_specular_gloss(Operator):
@@ -435,6 +433,12 @@ class ds_pbr_material(Panel):
         layout.operator("ds_pbr.nodes_specular_gloss")
 
         layout.separator()
+		
+        if addon_updater_ops.updater.update_ready == True:
+            layout.label("Custom update message", icon="INFO")
+        layout.label("")
+
+        addon_updater_ops.update_notice_box_ui(self, context)
 
 def register():
 
