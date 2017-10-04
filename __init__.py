@@ -20,10 +20,10 @@ bl_info = {
     "name": "PBR",
 	"description": "PBR Workflow Tools",
 	"author": "Digiography.Studio",
-	"version": (0, 9, 1),
+	"version": (0, 9, 2),
     "blender": (2, 79, 0),
 	"location": "Properties > Material > PBR Material",
-	"wiki_url":    "https://github.com/Digiography/blender_addon_pbr",
+	"wiki_url":    "https://github.com/Digiography/blender_addon_pbr/wiki",
 	"tracker_url": "https://github.com/Digiography/blender_addon_pbr/issues",
     "category": "Material",
 }
