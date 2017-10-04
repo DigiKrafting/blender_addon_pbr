@@ -20,7 +20,7 @@ bl_info = {
     "name": "PBR",
 	"description": "PBR Workflow Tools",
 	"author": "Digiography.Studio",
-	"version": (1, 0, 0),
+	"version": (1, 1, 0),
     "blender": (2, 79, 0),
 	"location": "Properties > Material > PBR Material",
 	"wiki_url":    "https://github.com/Digiography/blender_addon_pbr/wiki",
@@ -29,12 +29,11 @@ bl_info = {
 }
 
 import bpy
-import os 
 
 from bpy.props import (StringProperty,BoolProperty,IntProperty,FloatProperty,FloatVectorProperty,EnumProperty,PointerProperty,)
 from bpy.types import (Panel,Operator,AddonPreferences,PropertyGroup,)
 
-from . import addon_updater_ops
+from  os import (listdir,path)
 
 class ds_pbr_nodes_remove(Operator):
 
@@ -64,29 +63,39 @@ class ds_pbr_auto_textures(Operator):
         layout = self.layout
         mat = context.material
         nodes = mat.node_tree.nodes
-        ds_pbr_material_options = context.material.ds_pbr_material_options
-        path = ds_pbr_material_options.textures_path
+        _ds_pbr_material_options = context.material.ds_pbr_material_options
+        _path = _ds_pbr_material_options.textures_path
 
-        if (path):
+        if (_path):
 
-            for filename in os.listdir(path):
+            for filename in listdir(_path):
+                
+                _filename=filename.lower()
 
-                if 'Base_Color' in filename:
-                    nodes['ds_pbr_texture_base_color'].image = bpy.data.images.load(path + '/'+ filename)
-                elif 'Normal' in filename:
-                    nodes['ds_pbr_texture_normal'].image = bpy.data.images.load(path + '/'+ filename)
-                elif 'Roughness' in filename:
-                    nodes['ds_pbr_texture_roughness'].image = bpy.data.images.load(path + '/'+ filename)
+                if 'base_color' in _filename or 'basecolor' in _filename or 'alberto' in _filename or '_alb.' in _filename or '_alb_' in _filename:
+                    nodes['ds_pbr_texture_base_color'].image = bpy.data.images.load(path.join(_path,filename))
 
-                if (ds_pbr_material_options.option_ao_map == True):
+                if (_ds_pbr_material_options.option_nodes_type == "specular"):
 
-                    if 'Ambient_Occlusion' in filename:
-                        nodes['ds_pbr_texture_ao'].image = bpy.data.images.load(path + '/'+ filename)
+                    if 'specular' in _filename or '_spec' in _filename  or '_s.' in _filename or '_s_' in _filename:
+                        nodes['ds_pbr_texture_base_color'].image = bpy.data.images.load(path.join(_path,filename))
 
-                if (ds_pbr_material_options.option_metallic_map == True):
+                if 'normal' in _filename or '_norm' in _filename  or '_n.' in _filename or '_n_' in _filename:
+                    nodes['ds_pbr_texture_normal'].image = bpy.data.images.load(path.join(_path,filename))
+                
+                if 'roughness' in _filename:
+                    nodes['ds_pbr_texture_roughness'].image = bpy.data.images.load(path.join(_path,filename))
 
-                    if 'Metallic' in filename and 'ds_pbr_texture_metallic' in nodes:
-                        nodes['ds_pbr_texture_metallic'].image = bpy.data.images.load(path + '/'+ filename)
+                if (_ds_pbr_material_options.option_ao_map == True):
+
+                    if 'ambient_occlusion' in _filename or '_ao.' in _filename or '_ao_' in _filename:
+                        nodes['ds_pbr_texture_ao'].image = bpy.data.images.load(path.join(_path,filename))
+
+                if (_ds_pbr_material_options.option_metallic_map == True):
+
+                    if 'ds_pbr_texture_metallic' in nodes:
+                        if 'metallic' in _filename or '_m.' in _filename or '_m_' in _filename:
+                            nodes['ds_pbr_texture_metallic'].image = bpy.data.images.load(path.join(_path,filename))
 
 class ds_pbr_nodes_metallic_roughness(Operator):
 
@@ -99,6 +108,7 @@ class ds_pbr_nodes_metallic_roughness(Operator):
         layout = self.layout
 
         _ds_pbr_material_options = context.material.ds_pbr_material_options
+        _ds_pbr_material_options['nodes_type']='metallic'
 
         mat = context.material
         
@@ -190,6 +200,7 @@ class ds_pbr_nodes_specular_gloss(Operator):
         layout = self.layout
 
         _ds_pbr_material_options = context.material.ds_pbr_material_options
+        _ds_pbr_material_options['nodes_type']='specular'
 
         mat = context.material
         
@@ -292,48 +303,17 @@ class ds_pbr_addon_prefs(AddonPreferences):
         min = 0.000,
         max = 1.000
     )
-    
-    auto_check_update = bpy.props.BoolProperty(
-		name = "Auto-check for Update",
-		description = "If enabled, auto-check for updates using an interval",
-		default = False,
-    )
-    updater_intrval_months = bpy.props.IntProperty(
-		name='Months',
-		description = "Number of months between checking for updates",
-		default=0,
-		min=0
-    )
-    updater_intrval_days = bpy.props.IntProperty(
-		name='Days',
-		description = "Number of days between checking for updates",
-		default=7,
-		min=0,
-    )
-    updater_intrval_hours = bpy.props.IntProperty(
-		name='Hours',
-		description = "Number of hours between checking for updates",
-		default=0,
-		min=0,
-		max=23
-    )
-    updater_intrval_minutes = bpy.props.IntProperty(
-		name='Minutes',
-		description = "Number of minutes between checking for updates",
-		default=0,
-		min=0,
-		max=59
-    )
 
     def draw(self, context):
 
         layout = self.layout
+
+        layout.label('Defaults',icon='PREFERENCES')
+        
         layout.prop(self, 'option_ao_map')
         layout.prop(self, 'option_metallic_map')
         layout.prop(self, 'option_metallic')
         layout.prop(self, 'option_specular')
-
-        addon_updater_ops.update_settings_ui(self,context)
 
 class ds_pbr_material_options(PropertyGroup):
 
@@ -367,8 +347,13 @@ class ds_pbr_material_options(PropertyGroup):
     )
     textures_path = StringProperty(
             name="Textures Path",
-            subtype='FILE_PATH',
+            subtype='DIR_PATH',
     )        
+    option_nodes_type = StringProperty(
+        name="Nodes Type",
+        description="Nodes Type",
+        default = ''
+    )
 
 class ds_pbr_material(Panel):
 
@@ -384,8 +369,6 @@ class ds_pbr_material(Panel):
     def draw(self, context):
 
         layout = self.layout
-
-        addon_updater_ops.check_for_update_background(context)
 
         _ds_pbr_material_options = context.material.ds_pbr_material_options
         mat = context.material or bpy.data.materials.new('Material')
@@ -440,13 +423,9 @@ class ds_pbr_material(Panel):
             layout.label("Custom update message", icon="INFO")
         layout.label("")
 
-        addon_updater_ops.update_notice_box_ui(self, context)
-
 def register():
 
     from bpy.utils import register_class
-
-    addon_updater_ops.register(bl_info)
 
     register_class(ds_pbr_addon_prefs)
     register_class(ds_pbr_material_options)
@@ -461,8 +440,6 @@ def register():
 def unregister():
 
     from bpy.utils import unregister_class
-
-    addon_updater_ops.unregister()
 
     unregister_class(ds_pbr_addon_prefs)
     unregister_class(ds_pbr_material_options)
