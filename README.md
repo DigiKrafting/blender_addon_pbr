@@ -11,7 +11,7 @@ Provides a material panel that creates Metallic/Roughness or Specular/Gloss Node
 
 # Min Blender Version
 
-Blender 2.79+
+2.79
 
 # Screenshots
 
