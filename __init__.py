@@ -20,7 +20,7 @@ bl_info = {
     "name": "PBR",
 	"description": "PBR Workflow Tools",
 	"author": "Digiography.Studio",
-	"version": (0, 9, 2),
+	"version": (0, 9, 3),
     "blender": (2, 79, 0),
 	"location": "Properties > Material > PBR Material",
 	"wiki_url":    "https://github.com/Digiography/blender_addon_pbr/wiki",
@@ -384,6 +384,8 @@ class ds_pbr_material(Panel):
     def draw(self, context):
 
         layout = self.layout
+
+        addon_updater_ops.check_for_update_background(context)
 
         _ds_pbr_material_options = context.material.ds_pbr_material_options
         mat = context.material or bpy.data.materials.new('Material')
