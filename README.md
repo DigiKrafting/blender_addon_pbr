@@ -13,6 +13,16 @@ Provides a material panel that creates Metallic/Roughness or Specular/Gloss Node
 
 2.79
 
+# Installation
+
+Download either the tar.gz or zip from [https://github.com/Digiography/blender_addon_pbr/releases/latest](https://github.com/Digiography/blender_addon_pbr/releases/latest)
+
+Installing an Addon in Blender
+
+Click File->User Preferences
+Select 'Add ons' Tab.
+Click 'Install Addon from File..'
+
 # Screenshots
 
 ![alt](/screenshots/pbr_prefs.png)
