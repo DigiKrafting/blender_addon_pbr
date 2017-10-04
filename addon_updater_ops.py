@@ -925,7 +925,7 @@ def register(bl_info):
 	# but the user has the option from user preferences to directly 
 	# update to the master branch or any other branches specified using
 	# the "install {branch}/older version" operator.
-	updater.include_branches = True
+	updater.include_branches = False
 
 	# if using "include_branches", 
 	# updater.include_branch_list defaults to ['master'] branch if set to none
