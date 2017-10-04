@@ -8,6 +8,7 @@ Provides a material panel that creates Metallic/Roughness or Specular/Gloss Node
 - Optional Auto Textures
 - Optional Ambient Occlusion Map
 - Optional Metallic Map
+- Addon Auto Updates (Thanks to CGCookie)
 
 # Min Blender Version
 
