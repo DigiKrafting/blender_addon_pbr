@@ -8,7 +8,6 @@ Provides a material panel that creates Metallic/Roughness or Specular/Gloss Node
 - Optional Auto Textures
 - Optional Ambient Occlusion Map
 - Optional Metallic Map
-- Addon Auto Updates (Thanks to CGCookie)
 
 # Min Blender Version
 
@@ -20,9 +19,9 @@ Download either the tar.gz or zip from [https://github.com/Digiography/blender_a
 
 Installing an Addon in Blender
 
-Click File->User Preferences
-Select 'Add ons' Tab.
-Click 'Install Addon from File..'
+- [File]->[User Preferences]
+- Select [Add ons'] Tab.
+- Click [Install Addon from File..].
 
 # Screenshots
 
