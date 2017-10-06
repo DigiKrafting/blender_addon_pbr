@@ -69,35 +69,41 @@ class ds_pbr_auto_textures(Operator):
         _path = _ds_pbr_material_options.textures_path
 
         if (_path):
+            
+            _path_files=_path
+            
+            if _path[0:2]=='//':
+                _path_files=bpy.path.abspath(_path)
 
-            for filename in listdir(_path):
+            for filename in listdir(_path_files):
                 
                 _filename=filename.lower()
-
+                _filepath=path.join(_path,filename)
+                
                 if 'base_color' in _filename or 'basecolor' in _filename or 'alberto' in _filename or '_alb.' in _filename or '_alb_' in _filename:
-                    _nodes['ds_pbr_texture_base_color'].image = bpy.data.images.load(path.join(_path,filename))
+                    _nodes['ds_pbr_texture_base_color'].image = bpy.data.images.load(_filepath)
 
                 if (_ds_pbr_material_options.option_nodes_type == "specular"):
 
                     if 'specular' in _filename or '_spec' in _filename  or '_s.' in _filename or '_s_' in _filename:
-                        _nodes['ds_pbr_texture_base_color'].image = bpy.data.images.load(path.join(_path,filename))
+                        _nodes['ds_pbr_texture_base_color'].image = bpy.data.images.load(_filepath)
 
                 if 'normal' in _filename or '_norm' in _filename  or '_n.' in _filename or '_n_' in _filename:
-                    _nodes['ds_pbr_texture_normal'].image = bpy.data.images.load(path.join(_path,filename))
+                    _nodes['ds_pbr_texture_normal'].image = bpy.data.images.load(_filepath)
                 
                 if 'roughness' in _filename:
-                    _nodes['ds_pbr_texture_roughness'].image = bpy.data.images.load(path.join(_path,filename))
+                    _nodes['ds_pbr_texture_roughness'].image = bpy.data.images.load(_filepath)
 
                 if (_ds_pbr_material_options.option_ao_map == True):
 
                     if 'ambient_occlusion' in _filename or '_ao.' in _filename or '_ao_' in _filename:
-                        _nodes['ds_pbr_texture_ao'].image = bpy.data.images.load(path.join(_path,filename))
+                        _nodes['ds_pbr_texture_ao'].image = bpy.data.images.load(_filepath)
 
                 if (_ds_pbr_material_options.option_metallic_map == True):
 
                     if 'ds_pbr_texture_metallic' in _nodes:
                         if 'metallic' in _filename or '_m.' in _filename or '_m_' in _filename:
-                            _nodes['ds_pbr_texture_metallic'].image = bpy.data.images.load(path.join(_path,filename))
+                            _nodes['ds_pbr_texture_metallic'].image = bpy.data.images.load(_filepath)
 
 class ds_pbr_nodes_metallic_roughness(Operator):
 
