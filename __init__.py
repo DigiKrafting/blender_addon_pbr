@@ -20,7 +20,7 @@ bl_info = {
     "name": "PBR",
 	"description": "PBR Workflow Tools",
 	"author": "Digiography.Studio",
-	"version": (1, 5, 0),
+	"version": (1, 5, 5),
     "blender": (2, 79, 0),
 	"location": "Properties > Material > PBR Material",
 	"wiki_url":    "https://github.com/Digiography/blender_addon_pbr/wiki",
@@ -54,6 +54,8 @@ class ds_pbr_nodes_remove(Operator):
             for node in _nodes:
                 _nodes.remove(node)
 
+        return {'FINISHED'}
+
 class ds_pbr_auto_textures(Operator):
 
     bl_idname = "ds_pbr.auto_textures"
@@ -66,7 +68,7 @@ class ds_pbr_auto_textures(Operator):
         _material = context.material
         _nodes = _material.node_tree.nodes
         _ds_pbr_material_options = context.material.ds_pbr_material_options
-        _path = _ds_pbr_material_options.textures_path
+        _path = _ds_pbr_material_options.option_textures_path
 
         if (_path):
             
@@ -82,28 +84,34 @@ class ds_pbr_auto_textures(Operator):
                 
                 if 'base_color' in _filename or 'basecolor' in _filename or 'alberto' in _filename or '_alb.' in _filename or '_alb_' in _filename:
                     _nodes['ds_pbr_texture_base_color'].image = bpy.data.images.load(_filepath)
+                    context.material.ds_pbr_material_options.option_texture_base_color_path=_filepath
 
                 if (_ds_pbr_material_options.option_nodes_type == "specular"):
 
                     if 'specular' in _filename or '_spec' in _filename  or '_s.' in _filename or '_s_' in _filename:
                         _nodes['ds_pbr_texture_base_color'].image = bpy.data.images.load(_filepath)
+                        context.material.ds_pbr_material_options.option_texture_base_color_path=_filepath
 
                 if 'normal' in _filename or '_norm' in _filename  or '_n.' in _filename or '_n_' in _filename:
                     _nodes['ds_pbr_texture_normal'].image = bpy.data.images.load(_filepath)
-                
+                    context.material.ds_pbr_material_options.option_texture_normal_path=_filepath
+
                 if 'roughness' in _filename:
                     _nodes['ds_pbr_texture_roughness'].image = bpy.data.images.load(_filepath)
+                    context.material.ds_pbr_material_options.option_texture_roughness_path=_filepath
 
                 if (_ds_pbr_material_options.option_ao_map == True):
 
                     if 'ambient_occlusion' in _filename or '_ao.' in _filename or '_ao_' in _filename:
                         _nodes['ds_pbr_texture_ao'].image = bpy.data.images.load(_filepath)
+                        context.material.ds_pbr_material_options.option_texture_ao_path=_filepath
 
                 if (_ds_pbr_material_options.option_metallic_map == True):
 
                     if 'ds_pbr_texture_metallic' in _nodes:
                         if 'metallic' in _filename or '_m.' in _filename or '_m_' in _filename:
                             _nodes['ds_pbr_texture_metallic'].image = bpy.data.images.load(_filepath)
+                            context.material.ds_pbr_material_options.option_texture_metallic_path=_filepath
 
 class ds_pbr_nodes_metallic_roughness(Operator):
 
@@ -365,22 +373,53 @@ class ds_pbr_material_options(PropertyGroup):
         set = set_option_metallic_map
     )
     option_relative = BoolProperty(
-        name="Relative Paths",
+        name="Use Relative Paths",
         description="Use Relative Paths for images.",
         get = get_option_relative,
         set = set_option_relative
     )
-    textures_path = StringProperty(
-            name="Auto Textures Path",
-            subtype='DIR_PATH',
+    option_textures_path = StringProperty(
+        name="Auto Textures Path",
+        description="Use auto assign textures images to input nodes.",
+        default = ''
     )        
+
     option_nodes_type = StringProperty(
         name="Nodes Type",
         description="Nodes Type",
         default = ''
     )
-    
-class ds_pbr_texture_base_color(bpy.types.Operator):
+
+    option_texture_base_color_path = StringProperty(
+        name="Base Color",
+        description="Add Base Color Node",
+    )
+    option_texture_normal_path = StringProperty(
+        name="Normal",
+        description="Add Normal Map Node",
+    )
+    option_texture_ao_path = StringProperty(
+        name="Ambient Occlusion",
+        description="Add Ambient Occlusion Node",
+    )
+    option_texture_metallic_path = StringProperty(
+        name="Metallic",
+        description="Add Metallic Node",
+    )
+    option_texture_roughness_path = StringProperty(
+        name="Roughness",
+        description="Add Roughness Node",
+    )
+
+class ds_pbr_texture_base_color_select_clr(bpy.types.Operator):
+    bl_idname = "ds_pbr.base_color_clr"
+    bl_label = "Base Color"
+    def execute(self, context):
+        context.material.node_tree.nodes['ds_pbr_texture_base_color'].image=None
+        context.material.ds_pbr_material_options.option_texture_base_color_path=''
+        return {'FINISHED'}
+
+class ds_pbr_texture_base_color_select(bpy.types.Operator):
     bl_idname = "ds_pbr.base_color"
     bl_label = "Base Color"
     filepath = bpy.props.StringProperty(subtype="FILE_PATH")
@@ -395,16 +434,25 @@ class ds_pbr_texture_base_color(bpy.types.Operator):
         else:
             _filepath=bpy.path.abspath(self.filepath)
         _nodes['ds_pbr_texture_base_color'].image=bpy.data.images.load(_filepath)
+        context.material.ds_pbr_material_options.option_texture_base_color_path=_filepath
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        if not self.filepath and context.material.ds_pbr_material_options.textures_path:
-            self.filepath = context.material.ds_pbr_material_options.textures_path
+        if not self.filepath and context.material.ds_pbr_material_options.option_textures_path:
+            self.filepath = context.material.ds_pbr_material_options.option_textures_path
         self.option_relative=context.material.ds_pbr_material_options.option_relative
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
-class ds_pbr_texture_normal(bpy.types.Operator):
+class ds_pbr_texture_normal_select_clr(bpy.types.Operator):
+    bl_idname = "ds_pbr.texture_normal_clr"
+    bl_label = "Normal"
+    def execute(self, context):
+        context.material.node_tree.nodes['ds_pbr_texture_normal'].image=None
+        context.material.ds_pbr_material_options.option_texture_normal_path=''
+        return {'FINISHED'}
+
+class ds_pbr_texture_normal_select(bpy.types.Operator):
     bl_idname = "ds_pbr.texture_normal"
     bl_label = "Normal"
     filepath = bpy.props.StringProperty(subtype="FILE_PATH")
@@ -419,16 +467,25 @@ class ds_pbr_texture_normal(bpy.types.Operator):
         else:
             _filepath=bpy.path.abspath(self.filepath)
         _nodes['ds_pbr_texture_normal'].image=bpy.data.images.load(_filepath)
+        context.material.ds_pbr_material_options.option_texture_normal_path=_filepath
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        if not self.filepath and context.material.ds_pbr_material_options.textures_path:
-            self.filepath = context.material.ds_pbr_material_options.textures_path
+        if not self.filepath and context.material.ds_pbr_material_options.option_textures_path:
+            self.filepath = context.material.ds_pbr_material_options.option_textures_path
         self.option_relative=context.material.ds_pbr_material_options.option_relative
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
-class ds_pbr_texture_ao(bpy.types.Operator):
+class ds_pbr_texture_ao_select_clr(bpy.types.Operator):
+    bl_idname = "ds_pbr.texture_ao_clr"
+    bl_label = "Ambient Occlusion"
+    def execute(self, context):
+        context.material.node_tree.nodes['ds_pbr_texture_ao'].image=None
+        context.material.ds_pbr_material_options.option_texture_ao_path=''
+        return {'FINISHED'}
+
+class ds_pbr_texture_ao_select(bpy.types.Operator):
     bl_idname = "ds_pbr.texture_ao"
     bl_label = "Ambient Occlusion"
     filepath = bpy.props.StringProperty(subtype="FILE_PATH")
@@ -443,16 +500,25 @@ class ds_pbr_texture_ao(bpy.types.Operator):
         else:
             _filepath=bpy.path.abspath(self.filepath)
         _nodes['ds_pbr_texture_ao'].image=bpy.data.images.load(_filepath)
+        context.material.ds_pbr_material_options.option_texture_ao_path=_filepath
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        if not self.filepath and context.material.ds_pbr_material_options.textures_path:
-            self.filepath = context.material.ds_pbr_material_options.textures_path
+        if not self.filepath and context.material.ds_pbr_material_options.option_textures_path:
+            self.filepath = context.material.ds_pbr_material_options.option_textures_path
         self.option_relative=context.material.ds_pbr_material_options.option_relative
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
-class ds_pbr_texture_metallic(bpy.types.Operator):
+class ds_pbr_texture_metallic_select_clr(bpy.types.Operator):
+    bl_idname = "ds_pbr.texture_metallic_clr"
+    bl_label = "Metallic"
+    def execute(self, context):
+        context.material.node_tree.nodes['ds_pbr_texture_metallic'].image=None
+        context.material.ds_pbr_material_options.option_texture_metallic_path=''
+        return {'FINISHED'}
+
+class ds_pbr_texture_metallic_select(bpy.types.Operator):
     bl_idname = "ds_pbr.texture_metallic"
     bl_label = "Metallic"
     bl_context = "material"
@@ -467,16 +533,25 @@ class ds_pbr_texture_metallic(bpy.types.Operator):
         else:
             _filepath=bpy.path.abspath(self.filepath)
         _nodes['ds_pbr_texture_metallic'].image=bpy.data.images.load(_filepath)
+        context.material.ds_pbr_material_options.option_texture_metallic_path=_filepath
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        if not self.filepath and context.material.ds_pbr_material_options.textures_path:
-            self.filepath = context.material.ds_pbr_material_options.textures_path
+        if not self.filepath and context.material.ds_pbr_material_options.option_textures_path:
+            self.filepath = context.material.ds_pbr_material_options.option_textures_path
         self.option_relative=context.material.ds_pbr_material_options.option_relative
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
-class ds_pbr_texture_roughness(bpy.types.Operator):
+class ds_pbr_texture_roughness_select_clr(bpy.types.Operator):
+    bl_idname = "ds_pbr.texture_roughness_clr"
+    bl_label = "Roughness"
+    def execute(self, context):
+        context.material.node_tree.nodes['ds_pbr_texture_roughness'].image=None
+        context.material.ds_pbr_material_options.option_texture_roughness_path=''
+        return {'FINISHED'}
+
+class ds_pbr_texture_roughness_select(bpy.types.Operator):
     bl_idname = "ds_pbr.texture_roughness"
     bl_label = "Roughness"
     filepath = bpy.props.StringProperty(subtype="FILE_PATH")
@@ -490,11 +565,38 @@ class ds_pbr_texture_roughness(bpy.types.Operator):
         else:
             _filepath=bpy.path.abspath(self.filepath)
         _nodes['ds_pbr_texture_roughness'].image=bpy.data.images.load(_filepath)
+        context.material.ds_pbr_material_options.option_texture_roughness_path=_filepath
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        if not self.filepath and context.material.ds_pbr_material_options.textures_path:
-            self.filepath = context.material.ds_pbr_material_options.textures_path
+        if not self.filepath and context.material.ds_pbr_material_options.option_textures_path:
+            self.filepath = context.material.ds_pbr_material_options.option_textures_path
+        self.option_relative=context.material.ds_pbr_material_options.option_relative
+        context.window_manager.fileselect_add(self,)
+        return {'RUNNING_MODAL'}
+
+class ds_pbr_textures_path_select_clr(bpy.types.Operator):
+    bl_idname = "ds_pbr.textures_path_select_clr"
+    bl_label = "Textures"
+    def execute(self, context):
+        context.material.ds_pbr_material_options.option_textures_path=''
+        return {'FINISHED'}
+
+class ds_pbr_textures_path_select(bpy.types.Operator):
+    bl_idname = "ds_pbr.textures_path_select"
+    bl_label = "Textures"
+    directory = bpy.props.StringProperty(subtype="DIR_PATH")
+    option_relative = bpy.props.BoolProperty(name="Relative")
+
+    def execute(self, context):
+        if self.option_relative==True:
+            _directory=bpy.path.relpath(self.directory)
+        else:
+            _directory=bpy.path.abspath(self.directory)
+        context.material.ds_pbr_material_options.option_textures_path=_directory
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
         self.option_relative=context.material.ds_pbr_material_options.option_relative
         context.window_manager.fileselect_add(self,)
         return {'RUNNING_MODAL'}
@@ -539,66 +641,68 @@ class ds_pbr_material(Panel):
 
             layout.label('Textures',icon='IMASEL')
 
-            row = layout.row(align=True)
-            col = row.split(percentage=0.3)
-            col.label(ds_pbr_texture_base_color.bl_label)
-            if _nodes['ds_pbr_texture_base_color'].image:
-                col.template_ID(_nodes['ds_pbr_texture_base_color'], "image", "image.open")
-            else:
-                col.operator(ds_pbr_texture_base_color.bl_idname, icon="FILE_FOLDER",text="Select Image")
+            col=layout.row(align=True)
+            box=col.box().split(0.40)
+            box.label(ds_pbr_texture_base_color_select.bl_label +':',icon='IMAGE_DATA')
+            box.label(_ds_pbr_material_options.option_texture_base_color_path)
+            box=col.box().split(0.50)
+            box.operator(ds_pbr_texture_base_color_select.bl_idname, icon="FILE_FOLDER",text="")
+            box.operator(ds_pbr_texture_base_color_select_clr.bl_idname, icon="X",text="")
 
             if (_ds_pbr_material_options.option_metallic_map == True and 'ds_pbr_texture_metallic' in _nodes):
 
-                row = layout.row(align=True)
-                col = row.split(percentage=0.3)
-                col.label(ds_pbr_texture_metallic.bl_label)
-                
-                if _nodes['ds_pbr_texture_metallic'].image:
-                    col.template_ID(_nodes['ds_pbr_texture_metallic'], "image", "image.open")
-                else:
-                    col.operator(ds_pbr_texture_metallic.bl_idname, icon="FILE_FOLDER",text="Select Image")
+                col=layout.row(align=True)
+                box=col.box().split(0.40)
+                box.label(ds_pbr_texture_metallic_select.bl_label +':',icon='IMAGE_DATA')
+                box.label(_ds_pbr_material_options.option_texture_metallic_path)
+                box=col.box().split(0.50)
+                box.operator(ds_pbr_texture_metallic_select.bl_idname, icon="FILE_FOLDER",text="")
+                box.operator(ds_pbr_texture_metallic_select_clr.bl_idname, icon="X",text="")
 
             if (_ds_pbr_material_options.option_ao_map == True):
 
-                row = layout.row(align=True)
-                col = row.split(percentage=0.3)
-                col.label(ds_pbr_texture_ao.bl_label)
                 if ('ds_pbr_texture_ao' in _nodes):
-                    if _nodes['ds_pbr_texture_ao'].image:
-                        col.template_ID(_nodes['ds_pbr_texture_ao'], "image", "image.open")
-                    else:
-                        col.operator(ds_pbr_texture_ao.bl_idname, icon="FILE_FOLDER",text="Select Image")
 
-            row = layout.row(align=True)
-            col = row.split(percentage=0.3)
-            col.label(ds_pbr_texture_normal.bl_label)
-            if _nodes['ds_pbr_texture_normal'].image:
-                col.template_ID(_nodes['ds_pbr_texture_normal'], "image", "image.open")
-            else:
-                col.operator(ds_pbr_texture_normal.bl_idname, icon="FILE_FOLDER",text="Select Image")
+                    col=layout.row(align=True)
+                    box=col.box().split(0.40)
+                    box.label(ds_pbr_texture_ao_select.bl_label +':',icon='IMAGE_DATA')
+                    box.label(_ds_pbr_material_options.option_texture_ao_path)
+                    box=col.box().split(0.50)
+                    box.operator(ds_pbr_texture_ao_select.bl_idname, icon="FILE_FOLDER",text="")
+                    box.operator(ds_pbr_texture_ao_select_clr.bl_idname, icon="X",text="")
+
+            col=layout.row(align=True)
+            box=col.box().split(0.40)
+            box.label(ds_pbr_texture_normal_select.bl_label +':',icon='IMAGE_DATA')
+            box.label(_ds_pbr_material_options.option_texture_normal_path)
+            box=col.box().split(0.50)
+            box.operator(ds_pbr_texture_normal_select.bl_idname, icon="FILE_FOLDER",text="")
+            box.operator(ds_pbr_texture_normal_select_clr.bl_idname, icon="X",text="")
  
-            row = layout.row(align=True)
-            col = row.split(percentage=0.3)
-            col.label(ds_pbr_texture_roughness.bl_label)
-            if _nodes['ds_pbr_texture_roughness'].image:
-                col.template_ID(_nodes['ds_pbr_texture_roughness'], "image", "image.open")
-            else:
-                col.operator(ds_pbr_texture_roughness.bl_idname, icon="FILE_FOLDER",text="Select Image")
+            col=layout.row(align=True)
+            box=col.box().split(0.40)
+            box.label(ds_pbr_texture_roughness_select.bl_label +':',icon='IMAGE_DATA')
+            box.label(_ds_pbr_material_options.option_texture_roughness_path)
+            box=col.box().split(0.50)
+            box.operator(ds_pbr_texture_roughness_select.bl_idname, icon="FILE_FOLDER",text="")
+            box.operator(ds_pbr_texture_roughness_select_clr.bl_idname, icon="X",text="")
 
-        layout.label('Options',icon='NODETREE')
+        col=layout.row(align=True)
+        box=col.box()
+        box.prop(_ds_pbr_material_options, "option_relative")
 
-        layout.prop(_ds_pbr_material_options, "textures_path")
-        layout.prop(_ds_pbr_material_options, "option_relative")
+        col=layout.row(align=True)
+        box=col.box().split(0.40)
+        box.label(ds_pbr_textures_path_select.bl_label,icon='FILESEL')
+        box.prop(_ds_pbr_material_options,"option_textures_path",text="")
+        box=col.box().split(0.50)
+        box.operator(ds_pbr_textures_path_select.bl_idname, icon="FILE_FOLDER",text="")
+        box.operator(ds_pbr_textures_path_select_clr.bl_idname, icon="X",text="")
+
 
         if not bpy.data.filepath and _ds_pbr_material_options.option_relative == True:
             layout.label('Blender file not saved. Required for relative paths.',icon='INFO')
 
-        layout.label('Optional Nodes',icon='NODETREE')
-
-        layout.prop(_ds_pbr_material_options, "option_ao_map")
-        layout.prop(_ds_pbr_material_options, "option_metallic_map")
-        
-        
         if (bpy.context.scene.render.engine != 'CYCLES' and bpy.context.scene.render.engine != 'BLENDER_GAME'):
                 
                 layout.label('Cycles or Blender Game Render Engine required for PBR','INFO')
@@ -607,10 +711,16 @@ class ds_pbr_material(Panel):
                 col.operator('ds_pbr.render_cycles')
                 col.operator('ds_pbr.render_game')
 
-        row = layout.row(align=True)
-        col = row.split(percentage=0.5)
-        col.operator("ds_pbr.nodes_metallic_roughness")
-        col.operator("ds_pbr.nodes_specular_gloss")
+        col = layout.row(align=True).split(0.50)
+        box=col.box()
+        box.label('Optional Nodes',icon='NODETREE')
+        box.prop(_ds_pbr_material_options, "option_ao_map")
+        box.prop(_ds_pbr_material_options, "option_metallic_map")
+        
+        box=col.box()
+        box.operator("ds_pbr.nodes_metallic_roughness")
+        box.operator("ds_pbr.nodes_specular_gloss")
+        box.operator("ds_pbr.nodes_remove")
 
         layout.separator()
 
@@ -620,11 +730,20 @@ def register():
 
     register_class(ds_pbr_render_cycles)
     register_class(ds_pbr_render_game)
-    register_class(ds_pbr_texture_base_color)
-    register_class(ds_pbr_texture_normal)
-    register_class(ds_pbr_texture_ao)
-    register_class(ds_pbr_texture_metallic)
-    register_class(ds_pbr_texture_roughness)
+    register_class(ds_pbr_texture_base_color_select)
+    register_class(ds_pbr_texture_normal_select)
+    register_class(ds_pbr_texture_ao_select)
+    register_class(ds_pbr_texture_metallic_select)
+    register_class(ds_pbr_texture_roughness_select)
+
+    register_class(ds_pbr_texture_base_color_select_clr)
+    register_class(ds_pbr_texture_normal_select_clr)
+    register_class(ds_pbr_texture_ao_select_clr)
+    register_class(ds_pbr_texture_metallic_select_clr)
+    register_class(ds_pbr_texture_roughness_select_clr)    
+
+    register_class(ds_pbr_textures_path_select)
+    register_class(ds_pbr_textures_path_select_clr)
 
     register_class(ds_pbr_addon_prefs)
     register_class(ds_pbr_material_options)
@@ -642,11 +761,20 @@ def unregister():
 
     unregister_class(ds_pbr_render_cycles)
     unregister_class(ds_pbr_render_game)
-    unregister_class(ds_pbr_texture_base_color)
-    unregister_class(ds_pbr_texture_normal)
-    unregister_class(ds_pbr_texture_ao)
-    unregister_class(ds_pbr_texture_metallic)
-    unregister_class(ds_pbr_texture_roughness)
+    unregister_class(ds_pbr_texture_base_color_select)
+    unregister_class(ds_pbr_texture_normal_select)
+    unregister_class(ds_pbr_texture_ao_select)
+    unregister_class(ds_pbr_texture_metallic_select)
+    unregister_class(ds_pbr_texture_roughness_select)
+
+    unregister_class(ds_pbr_texture_base_color_select_clr)
+    unregister_class(ds_pbr_texture_normal_select_clr)
+    unregister_class(ds_pbr_texture_ao_select_clr)
+    unregister_class(ds_pbr_texture_metallic_select_clr)
+    unregister_class(ds_pbr_texture_roughness_select_clr)    
+    
+    unregister_class(ds_pbr_textures_path_select)
+    unregister_class(ds_pbr_textures_path_select_clr)
 
     unregister_class(ds_pbr_addon_prefs)
     unregister_class(ds_pbr_material_options)
