@@ -27,8 +27,6 @@ Installing an Addon in Blender
 
 ![alt](/screenshots/pbr_prefs.png)
 
-![alt](/screenshots/material_panel_default.png)
-
 ![alt](/screenshots/material_panel_m_r.png)
 
 ![alt](/screenshots/pbr_nodes_m_r.png)
