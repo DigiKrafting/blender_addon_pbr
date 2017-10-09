@@ -20,7 +20,7 @@ bl_info = {
     "name": "PBR",
 	"description": "PBR Workflow Tools",
 	"author": "Digiography.Studio",
-	"version": (1, 6, 0),
+	"version": (1, 6, 5),
     "blender": (2, 79, 0),
 	"location": "Properties > Material > PBR Material",
 	"wiki_url":    "https://github.com/Digiography/blender_addon_pbr/wiki",
@@ -464,23 +464,23 @@ class ds_pbr_material_options(PropertyGroup):
     )
     option_texture_base_color_path = StringProperty(
         name="Base Color",
-        description="Add Base Color Node",
+        description="Base Color Path",
     )
     option_texture_normal_path = StringProperty(
         name="Normal",
-        description="Add Normal Map Node",
+        description="Normal Path",
     )
     option_texture_ao_path = StringProperty(
         name="Ambient Occlusion",
-        description="Add Ambient Occlusion Node",
+        description="Ambient Occlusion Path",
     )
     option_texture_metallic_path = StringProperty(
         name="Metallic",
-        description="Add Metallic Node",
+        description="Metallic Path",
     )
     option_texture_roughness_path = StringProperty(
         name="Roughness",
-        description="Add Roughness Node",
+        description="Roughness Path",
     )
 
 # File select dialog overrides
@@ -649,14 +649,14 @@ class ds_pbr_texture_roughness_select(bpy.types.Operator):
 
 class ds_pbr_textures_path_select_clr(bpy.types.Operator):
     bl_idname = "ds_pbr.textures_path_select_clr"
-    bl_label = "Textures"
+    bl_label = "Auto Textures Path"
     def execute(self, context):
         context.material.ds_pbr_material_options.option_textures_path=''
         return {'FINISHED'}
 
 class ds_pbr_textures_path_select(bpy.types.Operator):
     bl_idname = "ds_pbr.textures_path_select"
-    bl_label = "Textures"
+    bl_label = "Auto Textures Path"
     directory = bpy.props.StringProperty(subtype="DIR_PATH")
     option_relative = bpy.props.BoolProperty(name="Relative")
 
@@ -720,10 +720,11 @@ class ds_pbr_material(Panel):
             # Base Color
 
             col=layout.row(align=True)
-            box=col.row().split(0.40)
+            box=col.row()
             box.label(ds_pbr_texture_base_color_select.bl_label +':',icon='IMAGE_DATA')
-            box.label(_ds_pbr_material_options.option_texture_base_color_path)
-            box=col.row().split(0.50)
+            row=col.row().split(0.85)
+            row.label(_ds_pbr_material_options.option_texture_base_color_path)
+            box=row.row().split(0.50)
             box.operator(ds_pbr_texture_base_color_select.bl_idname, icon="FILE_FOLDER",text="")
             box.operator(ds_pbr_texture_base_color_select_clr.bl_idname, icon="X",text="")
 
@@ -732,10 +733,11 @@ class ds_pbr_material(Panel):
                 # Metallic
 
                 col=layout.row(align=True)
-                box=col.row().split(0.40)
+                box=col.row()
                 box.label(ds_pbr_texture_metallic_select.bl_label +':',icon='IMAGE_DATA')
-                box.label(_ds_pbr_material_options.option_texture_metallic_path)
-                box=col.row().split(0.50)
+                row=col.row().split(0.85)
+                row.label(_ds_pbr_material_options.option_texture_metallic_path)
+                box=row.row().split(0.50)
                 box.operator(ds_pbr_texture_metallic_select.bl_idname, icon="FILE_FOLDER",text="")
                 box.operator(ds_pbr_texture_metallic_select_clr.bl_idname, icon="X",text="")
 
@@ -746,50 +748,55 @@ class ds_pbr_material(Panel):
                     # Ambient Occlusion
 
                     col=layout.row(align=True)
-                    box=col.row().split(0.40)
+                    box=col.row()
                     box.label(ds_pbr_texture_ao_select.bl_label +':',icon='IMAGE_DATA')
-                    box.label(_ds_pbr_material_options.option_texture_ao_path)
-                    box=col.row().split(0.50)
+                    row=col.row().split(0.85)
+                    row.label(_ds_pbr_material_options.option_texture_ao_path)
+                    box=row.row().split(0.50)
                     box.operator(ds_pbr_texture_ao_select.bl_idname, icon="FILE_FOLDER",text="")
                     box.operator(ds_pbr_texture_ao_select_clr.bl_idname, icon="X",text="")
             
             # Normal
 
             col=layout.row(align=True)
-            box=col.row().split(0.40)
+            box=col.row()
             box.label(ds_pbr_texture_normal_select.bl_label +':',icon='IMAGE_DATA')
-            box.label(_ds_pbr_material_options.option_texture_normal_path)
-            box=col.row().split(0.50)
+            row=col.row().split(0.85)
+            row.label(_ds_pbr_material_options.option_texture_normal_path)
+            box=row.row().split(0.50)
             box.operator(ds_pbr_texture_normal_select.bl_idname, icon="FILE_FOLDER",text="")
             box.operator(ds_pbr_texture_normal_select_clr.bl_idname, icon="X",text="")
             
             # Roughness
 
             col=layout.row(align=True)
-            box=col.row().split(0.40)
+            box=col.row()
             box.label(ds_pbr_texture_roughness_select.bl_label +':',icon='IMAGE_DATA')
-            box.label(_ds_pbr_material_options.option_texture_roughness_path)
-            box=col.row().split(0.50)
+            row=col.row().split(0.85)
+            row.label(_ds_pbr_material_options.option_texture_roughness_path)
+            box=row.row().split(0.50)
             box.operator(ds_pbr_texture_roughness_select.bl_idname, icon="FILE_FOLDER",text="")
             box.operator(ds_pbr_texture_roughness_select_clr.bl_idname, icon="X",text="")
+
+        # Check if .blend file is saved
+
+        if not bpy.data.filepath and _ds_pbr_material_options.option_relative == True:
+            layout.label('Blender file not saved. Required for relative paths.',icon='ERROR')
 
         # Relative Paths
 
         col=layout.row(align=True)
         box=col.row()
-
-        if not bpy.data.filepath and _ds_pbr_material_options.option_relative == True:
-            box.label('Blender file not saved. Required for relative paths.',icon='INFO')
-
         box.prop(_ds_pbr_material_options, "option_relative")
         
         # Auto Textures Folder
 
         col=layout.row(align=True)
-        box=col.row().split(0.40)
+        box=col.row()
         box.label(ds_pbr_textures_path_select.bl_label,icon='FILESEL')
-        box.prop(_ds_pbr_material_options,"option_textures_path",text="")
-        box=col.row().split(0.50)
+        row=col.row().split(0.85)
+        row.prop(_ds_pbr_material_options,"option_textures_path",text="")
+        box=row.row().split(0.50)
         box.operator(ds_pbr_textures_path_select.bl_idname, icon="FILE_FOLDER",text="")
         box.operator(ds_pbr_textures_path_select_clr.bl_idname, icon="X",text="")
         

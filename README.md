@@ -5,13 +5,18 @@ Provides a material panel that creates Metallic/Roughness or Specular/Gloss Node
 # Features
 
 - Utilises Standard Blender Nodes and Shader
+- Visible Relative Paths
 - Optional Auto Textures
 - Optional Ambient Occlusion Map
 - Optional Metallic Map
 
+# Roadmap
+
+- Improve/Expand auto texture detection
+
 # Min Blender Version
 
-2.79
+2.79.0
 
 # Installation
 
