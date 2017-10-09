@@ -20,7 +20,7 @@ bl_info = {
     "name": "PBR",
 	"description": "PBR Workflow Tools",
 	"author": "Digiography.Studio",
-	"version": (1, 5, 5),
+	"version": (1, 6, 0),
     "blender": (2, 79, 0),
 	"location": "Properties > Material > PBR Material",
 	"wiki_url":    "https://github.com/Digiography/blender_addon_pbr/wiki",
@@ -28,12 +28,16 @@ bl_info = {
     "category": "Material",
 }
 
+# Main Imports
+
 import bpy
 
 from bpy.props import (StringProperty,BoolProperty,IntProperty,FloatProperty,FloatVectorProperty,EnumProperty,PointerProperty,)
 from bpy.types import (Panel,Operator,AddonPreferences,PropertyGroup,)
 
 from  os import (listdir,path)
+
+# Clear Nodes
 
 class ds_pbr_nodes_remove(Operator):
 
@@ -56,6 +60,8 @@ class ds_pbr_nodes_remove(Operator):
 
         return {'FINISHED'}
 
+# Auto Textures - Match input nodes bases on filename
+
 class ds_pbr_auto_textures(Operator):
 
     bl_idname = "ds_pbr.auto_textures"
@@ -74,6 +80,8 @@ class ds_pbr_auto_textures(Operator):
             
             _path_files=_path
             
+            # Check if path is relative
+
             if _path[0:2]=='//':
                 _path_files=bpy.path.abspath(_path)
 
@@ -82,29 +90,41 @@ class ds_pbr_auto_textures(Operator):
                 _filename=filename.lower()
                 _filepath=path.join(_path,filename)
                 
+                # Base Color
+
                 if 'base_color' in _filename or 'basecolor' in _filename or 'alberto' in _filename or '_alb.' in _filename or '_alb_' in _filename:
                     _nodes['ds_pbr_texture_base_color'].image = bpy.data.images.load(_filepath)
                     context.material.ds_pbr_material_options.option_texture_base_color_path=_filepath
+                
+                # Specular
 
                 if (_ds_pbr_material_options.option_nodes_type == "specular"):
 
                     if 'specular' in _filename or '_spec' in _filename  or '_s.' in _filename or '_s_' in _filename:
                         _nodes['ds_pbr_texture_base_color'].image = bpy.data.images.load(_filepath)
                         context.material.ds_pbr_material_options.option_texture_base_color_path=_filepath
+                
+                # Normal
 
                 if 'normal' in _filename or '_norm' in _filename  or '_n.' in _filename or '_n_' in _filename:
                     _nodes['ds_pbr_texture_normal'].image = bpy.data.images.load(_filepath)
                     context.material.ds_pbr_material_options.option_texture_normal_path=_filepath
 
+                # Roughness
+
                 if 'roughness' in _filename:
                     _nodes['ds_pbr_texture_roughness'].image = bpy.data.images.load(_filepath)
                     context.material.ds_pbr_material_options.option_texture_roughness_path=_filepath
+
+                # Ambient Occlusion
 
                 if (_ds_pbr_material_options.option_ao_map == True):
 
                     if 'ambient_occlusion' in _filename or '_ao.' in _filename or '_ao_' in _filename:
                         _nodes['ds_pbr_texture_ao'].image = bpy.data.images.load(_filepath)
                         context.material.ds_pbr_material_options.option_texture_ao_path=_filepath
+                
+                # Metallic
 
                 if (_ds_pbr_material_options.option_metallic_map == True):
 
@@ -123,28 +143,37 @@ class ds_pbr_nodes_metallic_roughness(Operator):
 
         layout = self.layout
 
+        # Set Vars
+
         _ds_pbr_material_options = context.material.ds_pbr_material_options
         _ds_pbr_material_options['nodes_type']='metallic'
 
         _material = context.material
+        _material_links = _material.node_tree.links
         
         _nodes = _material.node_tree.nodes
 
+        # Clear Nodes
+
         ds_pbr_nodes_remove.execute(self,context)
+
+        # Output Material
 
         _material_output = _nodes.new('ShaderNodeOutputMaterial')
         _material_output.location = 600,0
         _material_output.name='ds_pbr_output'
 
+        # Shader
+
         node_shader = _nodes.new('ShaderNodeBsdfPrincipled')
         node_shader.location = 400,0
         node_shader.name='ds_pbr_shader'
-
-        _material_links = _material.node_tree.links
         
         _material_links.new(node_shader.outputs['BSDF'], _material_output.inputs['Surface'])
 
         if (_ds_pbr_material_options.option_ao_map == True):
+
+            # Mix RGB
 
             node_mix=_nodes.new('ShaderNodeMixRGB')
             node_mix.location = 200,100
@@ -152,10 +181,14 @@ class ds_pbr_nodes_metallic_roughness(Operator):
             node_mix.name='ds_pbr_mix_rgb'
             _material_links.new(node_mix.outputs['Color'], node_shader.inputs['Base Color'])
 
+            # Base Color
+
             node=_nodes.new('ShaderNodeTexImage')
             node.location = 0,250
             node.name='ds_pbr_texture_base_color'
             _material_links.new(node.outputs['Color'], node_mix.inputs['Color1'])
+
+            # Ambient Occlusion
             
             node=_nodes.new('ShaderNodeTexImage')
             node.location = 0,0
@@ -165,10 +198,14 @@ class ds_pbr_nodes_metallic_roughness(Operator):
         
         else:
 
+            # Base Color
+
             node=_nodes.new('ShaderNodeTexImage')
             node.location = 0,250
             node.name='ds_pbr_texture_base_color'
             _material_links.new(node.outputs['Color'], node_shader.inputs['Base Color'])
+
+        # Metallic
 
         if (_ds_pbr_material_options.option_metallic_map == True):
 
@@ -184,22 +221,30 @@ class ds_pbr_nodes_metallic_roughness(Operator):
 
         node_shader.inputs['Specular'].default_value=bpy.context.user_preferences.addons[__name__].preferences.option_specular
 
+        # Roughness
+
         node=_nodes.new('ShaderNodeTexImage')
         node.location = 0,-500
         node.color_space = 'NONE'
         node.name='ds_pbr_texture_roughness'
         _material_links.new(node.outputs['Color'], node_shader.inputs['Roughness'])   
 
+        # Normal Map
+
         node_map=_nodes.new('ShaderNodeNormalMap')
         node_map.location = 200,-700
         node_map.name='ds_pbr_normal_map'
         _material_links.new(node_map.outputs['Normal'], node_shader.inputs['Normal'])
+        
+        # Normal
 
         node=_nodes.new('ShaderNodeTexImage')
         node.location = 0,-750
         node.color_space = 'NONE'
         node.name='ds_pbr_texture_normal'
         _material_links.new(node.outputs['Color'], node_map.inputs['Color'])
+
+        # Assign Textures
     
         ds_pbr_auto_textures.execute(self,context)
 
@@ -215,40 +260,53 @@ class ds_pbr_nodes_specular_gloss(Operator):
 
         layout = self.layout
 
+        # Set Vars
+
         _ds_pbr_material_options = context.material.ds_pbr_material_options
         _ds_pbr_material_options['nodes_type']='specular'
 
         _material = context.material
+        _material_links = _material.node_tree.links
         
         _nodes = _material.node_tree.nodes
+        
+        # Clear Nodes
 
         ds_pbr_nodes_remove.execute(self,context)
+        
+        # Output Material
 
         _material_output = _nodes.new('ShaderNodeOutputMaterial')
         _material_output.location = 600,0
         _material_output.name='ds_pbr_output'
-
+        
+        # Shader
+        
         node_shader = _nodes.new('ShaderNodeBsdfPrincipled')
         node_shader.location = 400,0
         node_shader.name='ds_pbr_shader'
-
-        _material_links = _material.node_tree.links
         
         _material_links.new(node_shader.outputs['BSDF'], _material_output.inputs['Surface'])
 
         if (_ds_pbr_material_options.option_ao_map == True):
+            
+            # Mix RGB
 
             node_mix=_nodes.new('ShaderNodeMixRGB')
             node_mix.location = 200,100
             node_mix.blend_type = 'MULTIPLY'
             node_mix.name='ds_pbr_mix_rgb'
             _material_links.new(node_mix.outputs['Color'], node_shader.inputs['Base Color'])
+            
+            # Base Color
 
             node=_nodes.new('ShaderNodeTexImage')
             node.location = 0,250
             node.name='ds_pbr_texture_base_color'
             _material_links.new(node.outputs['Color'], node_mix.inputs['Color1'])
             
+            # Ambient Occlusion
+
             node=_nodes.new('ShaderNodeTexImage')
             node.location = 0,0
             node.color_space = 'NONE'
@@ -256,6 +314,8 @@ class ds_pbr_nodes_specular_gloss(Operator):
             _material_links.new(node.outputs['Color'], node_mix.inputs['Color2'])
         
         else:
+            
+            # Base Color
 
             node=_nodes.new('ShaderNodeTexImage')
             node.location = 0,250
@@ -264,22 +324,30 @@ class ds_pbr_nodes_specular_gloss(Operator):
 
         node_shader.inputs['Metallic'].default_value=bpy.context.user_preferences.addons[__name__].preferences.option_metallic
         node_shader.inputs['Specular'].default_value=bpy.context.user_preferences.addons[__name__].preferences.option_specular
+        
+        # Roughness Invert
 
         node_invert=_nodes.new('ShaderNodeInvert')
         node_invert.location = 200,-450
         node_invert.name='ds_pbr_invert'
         _material_links.new(node_invert.outputs['Color'], node_shader.inputs['Roughness'])
+        
+        # Roughness
 
         node=_nodes.new('ShaderNodeTexImage')
         node.location = 0,-500
         node.color_space = 'NONE'
         node.name='ds_pbr_texture_roughness'
         _material_links.new(node.outputs['Color'], node_invert.inputs['Color'])   
+        
+        # Normal Map
 
         node_map=_nodes.new('ShaderNodeNormalMap')
         node_map.location = 200,-700
         node_map.name='ds_pbr_normal_map'
         _material_links.new(node_map.outputs['Normal'], node_shader.inputs['Normal'])
+        
+        # Normal
 
         node=_nodes.new('ShaderNodeTexImage')
         node.location = 0,-750
@@ -287,9 +355,13 @@ class ds_pbr_nodes_specular_gloss(Operator):
         node.name='ds_pbr_texture_normal'
         _material_links.new(node.outputs['Color'], node_map.inputs['Color'])
 
+        # Assign Textures
+
         ds_pbr_auto_textures.execute(self,context)
 
         return {'FINISHED'}
+
+# Addon Preferences Panel
 
 class ds_pbr_addon_prefs(AddonPreferences):
 
@@ -312,14 +384,14 @@ class ds_pbr_addon_prefs(AddonPreferences):
     )
     option_metallic = FloatProperty(
         name = "Metaliic",
-        description = "A float property",
+        description = "Metalic Value",
         default = 0.500,
         min = 0.000,
         max = 1.000
     )        
     option_specular = FloatProperty(
         name = "Specular",
-        description = "A float property",
+        description = "Specular Value",
         default = 0.500,
         min = 0.000,
         max = 1.000
@@ -336,6 +408,8 @@ class ds_pbr_addon_prefs(AddonPreferences):
         layout.prop(self, 'option_metallic_map')
         layout.prop(self, 'option_metallic')
         layout.prop(self, 'option_specular')
+
+# Material Panel Properties
 
 class ds_pbr_material_options(PropertyGroup):
 
@@ -383,13 +457,11 @@ class ds_pbr_material_options(PropertyGroup):
         description="Use auto assign textures images to input nodes.",
         default = ''
     )        
-
     option_nodes_type = StringProperty(
         name="Nodes Type",
         description="Nodes Type",
         default = ''
     )
-
     option_texture_base_color_path = StringProperty(
         name="Base Color",
         description="Add Base Color Node",
@@ -410,6 +482,8 @@ class ds_pbr_material_options(PropertyGroup):
         name="Roughness",
         description="Add Roughness Node",
     )
+
+# File select dialog overrides
 
 class ds_pbr_texture_base_color_select_clr(bpy.types.Operator):
     bl_idname = "ds_pbr.base_color_clr"
@@ -490,9 +564,7 @@ class ds_pbr_texture_ao_select(bpy.types.Operator):
     bl_label = "Ambient Occlusion"
     filepath = bpy.props.StringProperty(subtype="FILE_PATH")
     bl_context = "material"
-
     option_relative = bpy.props.BoolProperty(name="Relative")
-
     def execute(self, context):
         _nodes = context.material.node_tree.nodes
         if self.option_relative==True:
@@ -601,6 +673,8 @@ class ds_pbr_textures_path_select(bpy.types.Operator):
         context.window_manager.fileselect_add(self,)
         return {'RUNNING_MODAL'}
 
+# Set Render Engines
+
 class ds_pbr_render_cycles(bpy.types.Operator):
     bl_idname = "ds_pbr.render_cycles"
     bl_label = "CYCLES"
@@ -616,6 +690,8 @@ class ds_pbr_render_game(bpy.types.Operator):
     def execute(self, context):
         bpy.context.scene.render.engine='BLENDER_GAME'
         return {'FINISHED'}
+
+# Material Panel
 
 class ds_pbr_material(Panel):
 
@@ -640,22 +716,26 @@ class ds_pbr_material(Panel):
         if ('ds_pbr_texture_normal' in _nodes):
 
             layout.label('Textures',icon='IMASEL')
+            
+            # Base Color
 
             col=layout.row(align=True)
-            box=col.box().split(0.40)
+            box=col.row().split(0.40)
             box.label(ds_pbr_texture_base_color_select.bl_label +':',icon='IMAGE_DATA')
             box.label(_ds_pbr_material_options.option_texture_base_color_path)
-            box=col.box().split(0.50)
+            box=col.row().split(0.50)
             box.operator(ds_pbr_texture_base_color_select.bl_idname, icon="FILE_FOLDER",text="")
             box.operator(ds_pbr_texture_base_color_select_clr.bl_idname, icon="X",text="")
 
             if (_ds_pbr_material_options.option_metallic_map == True and 'ds_pbr_texture_metallic' in _nodes):
 
+                # Metallic
+
                 col=layout.row(align=True)
-                box=col.box().split(0.40)
+                box=col.row().split(0.40)
                 box.label(ds_pbr_texture_metallic_select.bl_label +':',icon='IMAGE_DATA')
                 box.label(_ds_pbr_material_options.option_texture_metallic_path)
-                box=col.box().split(0.50)
+                box=col.row().split(0.50)
                 box.operator(ds_pbr_texture_metallic_select.bl_idname, icon="FILE_FOLDER",text="")
                 box.operator(ds_pbr_texture_metallic_select_clr.bl_idname, icon="X",text="")
 
@@ -663,45 +743,57 @@ class ds_pbr_material(Panel):
 
                 if ('ds_pbr_texture_ao' in _nodes):
 
+                    # Ambient Occlusion
+
                     col=layout.row(align=True)
-                    box=col.box().split(0.40)
+                    box=col.row().split(0.40)
                     box.label(ds_pbr_texture_ao_select.bl_label +':',icon='IMAGE_DATA')
                     box.label(_ds_pbr_material_options.option_texture_ao_path)
-                    box=col.box().split(0.50)
+                    box=col.row().split(0.50)
                     box.operator(ds_pbr_texture_ao_select.bl_idname, icon="FILE_FOLDER",text="")
                     box.operator(ds_pbr_texture_ao_select_clr.bl_idname, icon="X",text="")
+            
+            # Normal
 
             col=layout.row(align=True)
-            box=col.box().split(0.40)
+            box=col.row().split(0.40)
             box.label(ds_pbr_texture_normal_select.bl_label +':',icon='IMAGE_DATA')
             box.label(_ds_pbr_material_options.option_texture_normal_path)
-            box=col.box().split(0.50)
+            box=col.row().split(0.50)
             box.operator(ds_pbr_texture_normal_select.bl_idname, icon="FILE_FOLDER",text="")
             box.operator(ds_pbr_texture_normal_select_clr.bl_idname, icon="X",text="")
- 
+            
+            # Roughness
+
             col=layout.row(align=True)
-            box=col.box().split(0.40)
+            box=col.row().split(0.40)
             box.label(ds_pbr_texture_roughness_select.bl_label +':',icon='IMAGE_DATA')
             box.label(_ds_pbr_material_options.option_texture_roughness_path)
-            box=col.box().split(0.50)
+            box=col.row().split(0.50)
             box.operator(ds_pbr_texture_roughness_select.bl_idname, icon="FILE_FOLDER",text="")
             box.operator(ds_pbr_texture_roughness_select_clr.bl_idname, icon="X",text="")
 
-        col=layout.row(align=True)
-        box=col.box()
-        box.prop(_ds_pbr_material_options, "option_relative")
+        # Relative Paths
 
         col=layout.row(align=True)
-        box=col.box().split(0.40)
-        box.label(ds_pbr_textures_path_select.bl_label,icon='FILESEL')
-        box.prop(_ds_pbr_material_options,"option_textures_path",text="")
-        box=col.box().split(0.50)
-        box.operator(ds_pbr_textures_path_select.bl_idname, icon="FILE_FOLDER",text="")
-        box.operator(ds_pbr_textures_path_select_clr.bl_idname, icon="X",text="")
-
+        box=col.row()
 
         if not bpy.data.filepath and _ds_pbr_material_options.option_relative == True:
-            layout.label('Blender file not saved. Required for relative paths.',icon='INFO')
+            box.label('Blender file not saved. Required for relative paths.',icon='INFO')
+
+        box.prop(_ds_pbr_material_options, "option_relative")
+        
+        # Auto Textures Folder
+
+        col=layout.row(align=True)
+        box=col.row().split(0.40)
+        box.label(ds_pbr_textures_path_select.bl_label,icon='FILESEL')
+        box.prop(_ds_pbr_material_options,"option_textures_path",text="")
+        box=col.row().split(0.50)
+        box.operator(ds_pbr_textures_path_select.bl_idname, icon="FILE_FOLDER",text="")
+        box.operator(ds_pbr_textures_path_select_clr.bl_idname, icon="X",text="")
+        
+        # Check if render engine is PBR capable
 
         if (bpy.context.scene.render.engine != 'CYCLES' and bpy.context.scene.render.engine != 'BLENDER_GAME'):
                 
@@ -711,13 +803,16 @@ class ds_pbr_material(Panel):
                 col.operator('ds_pbr.render_cycles')
                 col.operator('ds_pbr.render_game')
 
-        col = layout.row(align=True).split(0.50)
-        box=col.box()
+        # Optional Nodes
+
+        row = layout.row(align=True)
+
+        box=row.column()
         box.label('Optional Nodes',icon='NODETREE')
         box.prop(_ds_pbr_material_options, "option_ao_map")
         box.prop(_ds_pbr_material_options, "option_metallic_map")
         
-        box=col.box()
+        box=row.column()
         box.operator("ds_pbr.nodes_metallic_roughness")
         box.operator("ds_pbr.nodes_specular_gloss")
         box.operator("ds_pbr.nodes_remove")
