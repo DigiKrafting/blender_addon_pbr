@@ -9,6 +9,8 @@ Provides a material panel that creates Metallic/Roughness or Specular/Gloss Node
 - Optional Auto Textures
 - Optional Ambient Occlusion Map
 - Optional Metallic Map
+- Convert Existing Nodes
+- Use Material Name for texture matching
 
 # Roadmap
 
@@ -37,3 +39,5 @@ Installing an Addon in Blender
 ![alt](/screenshots/pbr_nodes_m_r.png)
 
 ![alt](/screenshots/pbr_fullscreen.png)
+
+![alt](/screenshots/pbr_matt_name.png)
