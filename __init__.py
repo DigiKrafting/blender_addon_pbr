@@ -20,7 +20,7 @@ bl_info = {
     "name": "PBR",
 	"description": "PBR Workflow Tools",
 	"author": "Digiography.Studio",
-	"version": (1, 8, 0),
+	"version": (1, 8, 5),
     "blender": (2, 79, 0),
 	"location": "Properties > Material > PBR Material",
 	"wiki_url":    "https://github.com/Digiography/blender_addon_pbr/wiki",
@@ -216,6 +216,7 @@ class ds_pbr_nodes_auto(Operator):
         _ds_pbr_material_options = context.material.ds_pbr_material_options
         _path = _ds_pbr_material_options.option_textures_path
         _path_files=_path
+        _object = context.object
         
         _gloss = False
         _metallic = False
