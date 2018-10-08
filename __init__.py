@@ -20,7 +20,7 @@ bl_info = {
     "name": "PBR",
 	"description": "PBR Workflow Tools",
 	"author": "Digiography.Studio",
-	"version": (1, 8, 5),
+	"version": (1, 9, 0),
     "blender": (2, 79, 0),
 	"location": "Properties > Material > PBR Material",
 	"wiki_url":    "https://github.com/Digiography/blender_addon_pbr/wiki",
@@ -31,7 +31,7 @@ bl_info = {
 node_name={
     'base_color':{
         'label':'Base Color',
-        'matches':['base_color','basecolor','diffuse','alberto','_alb.','_alb_','_col_','_color','color.']
+        'matches':['base_color','basecolor','diffuse','albedo','_alb.','_alb_','_col_','_color','color.']
     },
     'metallic':{
         'label':'Metallic',
@@ -502,7 +502,7 @@ class ds_pbr_addon_prefs(AddonPreferences):
         layout.prop(self, 'option_relative')
         layout.prop(self, 'option_ao_node')
         layout.prop(self, 'option_metallic_node')
-        layout.prop(self, 'option_Specular_node')
+        layout.prop(self, 'option_specular_node')
         layout.prop(self, 'option_metallic')
         layout.prop(self, 'option_specular')
 
