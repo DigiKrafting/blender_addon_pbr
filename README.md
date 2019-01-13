@@ -2,6 +2,8 @@
 
 Provides a material panel that creates Metallic/Roughness or Specular/Gloss Nodes using the Principled BSDF shader. 
 
+\* Updated to Blender 2.80.0 Beta
+
 # Features
 
 - Utilises Standard Blender Nodes and Shader
@@ -20,6 +22,12 @@ Provides a material panel that creates Metallic/Roughness or Specular/Gloss Node
 - Improve/Expand auto texture detection
 
 # Min Blender Version
+
+blender_addon_pbr 2.0.0+
+
+2.80.0
+
+Prior to blender_addon_pbr 2.0.0
 
 2.79.0
 
