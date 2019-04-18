@@ -602,9 +602,9 @@ class ds_pbr_render_eevee(bpy.types.Operator):
 
 # Material Panel
 
-class ds_pbr_material(bpy.types.Panel):
-
-    bl_idname = "ds_pbr.material"
+class PANEL_PT_ds_pbr_material(bpy.types.Panel):
+    
+    bl_idname = "PANEL_PT_ds_pbr_material"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_label = "PBR Material"
@@ -820,7 +820,7 @@ classes = (
     ds_pbr_auto_textures,
     ds_pbr_nodes_auto,
     ds_pbr_nodes,
-    ds_pbr_material,
+    PANEL_PT_ds_pbr_material,
 )
 
 def register():
