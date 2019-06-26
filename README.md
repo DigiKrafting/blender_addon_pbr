@@ -16,6 +16,7 @@ Provides a material panel that creates Metallic/Roughness or Specular/Gloss Node
 - Use Mesh Name for texture matching
 - Use Material Name for texture matching
 - Auto Detect Nodes from textures.
+- Creates nodes for Unreal Engine Textures. * (On detection of OcclusionRoughnessMetallic texture)
 
 # Roadmap
 
@@ -33,7 +34,7 @@ Prior to blender_addon_pbr 2.0.0
 
 # Installation
 
-Download either the tar.gz or zip from [https://github.com/Digiography/blender_addon_pbr/releases/latest](https://github.com/Digiography/blender_addon_pbr/releases/latest)
+Download either the tar.gz or zip from [https://github.com/DigiKrafting/blender_addon_pbr/releases/latest](https://github.com/DigiKrafting/blender_addon_pbr/releases/latest)
 
 Installing an Addon in Blender
 

@@ -17,14 +17,14 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "PBR",
+    "name": "DKS PBR",
 	"description": "PBR Workflow Tools",
-	"author": "Digiography.Studio",
-	"version": (2, 5, 1),
+	"author": "DigiKrafting.Studio",
+	"version": (2, 6, 0),
     "blender": (2, 80, 0),
 	"location": "Properties > Material > PBR Material",
-	"wiki_url":    "https://github.com/Digiography/blender_addon_pbr/wiki",
-	"tracker_url": "https://github.com/Digiography/blender_addon_pbr/issues",
+	"wiki_url":    "https://github.com/DigiKrafting/blender_addon_pbr/wiki",
+	"tracker_url": "https://github.com/DigiKrafting/blender_addon_pbr/issues",
     "category": "Material",
 }
 
@@ -32,16 +32,16 @@ bl_info = {
 
 import bpy
 from bpy.utils import register_class, unregister_class
-from . import ds_pbr
+from . import dks_pbr
 
 # Addon Preferences Panel
 
-class ds_pbr_addon_prefs(bpy.types.AddonPreferences):
+class dks_pbr_addon_prefs(bpy.types.AddonPreferences):
 
     bl_idname = __package__
 
     option_ao_node : bpy.props.BoolProperty(
-        name="Ambient Occlusion",
+        name="Occlusion Roughness Metallic",
         description="Add Ambient Occlusion Map via RGB Mix Node",
         default = False
     )
@@ -89,7 +89,7 @@ class ds_pbr_addon_prefs(bpy.types.AddonPreferences):
         layout.prop(self, 'option_specular')
 
 classes = (
-    ds_pbr_addon_prefs,
+    dks_pbr_addon_prefs,
 )
 
 def register():
@@ -97,11 +97,11 @@ def register():
     for cls in classes:
         register_class(cls)
 
-    ds_pbr.register()
+    dks_pbr.register()
 
 def unregister():
 
-    ds_pbr.unregister()
+    dks_pbr.unregister()
 
     for cls in reversed(classes):
         unregister_class(cls)
