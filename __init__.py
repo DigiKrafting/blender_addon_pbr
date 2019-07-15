@@ -20,7 +20,7 @@ bl_info = {
     "name": "DKS PBR",
 	"description": "PBR Workflow Tools",
 	"author": "DigiKrafting.Studio",
-	"version": (2, 6, 0),
+	"version": (2, 6, 5),
     "blender": (2, 80, 0),
 	"location": "Properties > Material > PBR Material",
 	"wiki_url":    "https://github.com/DigiKrafting/blender_addon_pbr/wiki",

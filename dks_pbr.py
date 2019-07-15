@@ -615,6 +615,10 @@ class dks_pbr_texture_select(bpy.types.Operator):
         else:
             _filepath=bpy.path.abspath(self.filepath)
         _nodes['dks_pbr_texture_'+self.node_name].image=bpy.data.images.load(_filepath)
+
+        if self.node_name!="base_color":
+            _nodes['dks_pbr_texture_'+self.node_name].image.colorspace_settings.name = 'Non-Color'
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -691,18 +695,20 @@ class PANEL_PT_dks_pbr_material(bpy.types.Panel):
         _nodes = _material.node_tree.nodes
         
         # Base Color
+        
+        if 'dks_pbr_texture_base_color' in _nodes:
 
-        col=layout.row(align=True)
-        box=col.row()
-        box.label(text=node_name['base_color']['label'] +':',icon='IMAGE_DATA')
-        row=col.row().split(factor=0.80)
-        if 'dks_pbr_texture_base_color' in _nodes and _nodes['dks_pbr_texture_base_color'].image:
-            row.label(text=_nodes['dks_pbr_texture_base_color'].image.filepath)
-        else:
-            row.label(text='')
-        box=row.row().split(factor=0.50)
-        box.operator(dks_pbr_texture_select.bl_idname, icon="FILE_FOLDER",text="", emboss=False).node_name='base_color'
-        box.operator(dks_pbr_texture_select_clr.bl_idname, icon="X",text="", emboss=False).node_name='base_color'
+            col=layout.row(align=True)
+            box=col.row()
+            box.label(text=node_name['base_color']['label'] +':',icon='IMAGE_DATA')
+            row=col.row().split(factor=0.80)
+            if 'dks_pbr_texture_base_color' in _nodes and _nodes['dks_pbr_texture_base_color'].image:
+                row.label(text=_nodes['dks_pbr_texture_base_color'].image.filepath)
+            else:
+                row.label(text='')
+            box=row.row().split(factor=0.50)
+            box.operator(dks_pbr_texture_select.bl_idname, icon="FILE_FOLDER",text="", emboss=False).node_name='base_color'
+            box.operator(dks_pbr_texture_select_clr.bl_idname, icon="X",text="", emboss=False).node_name='base_color'
 
         if (_dks_pbr_material_options.option_metallic_node == True and 'dks_pbr_texture_metallic' in _nodes):
 
@@ -772,33 +778,37 @@ class PANEL_PT_dks_pbr_material(bpy.types.Panel):
         
         # Normal
 
-        col=layout.row(align=True)
-        box=col.row()
-        box.label(text=node_name['normal']['label'] +':',icon='IMAGE_DATA')
-        row=col.row().split(factor=0.80)
-        if 'dks_pbr_texture_normal' in _nodes and _nodes['dks_pbr_texture_normal'].image:
-            row.label(text=_nodes['dks_pbr_texture_normal'].image.filepath)
-        else:
-            row.label(text='')
-        box=row.row().split(factor=0.50)
-        box.operator(dks_pbr_texture_select.bl_idname, icon="FILE_FOLDER",text="", emboss=False).node_name='normal'
-        box.operator(dks_pbr_texture_select_clr.bl_idname, icon="X",text="", emboss=False).node_name='normal'
-
-        if _dks_pbr_material_options.option_orm_node==False:
-        
-            # Roughness
+        if 'dks_pbr_texture_normal' in _nodes:
 
             col=layout.row(align=True)
             box=col.row()
-            box.label(text=node_name['roughness']['label'] +':',icon='IMAGE_DATA')
+            box.label(text=node_name['normal']['label'] +':',icon='IMAGE_DATA')
             row=col.row().split(factor=0.80)
-            if 'dks_pbr_texture_roughness' in _nodes and _nodes['dks_pbr_texture_roughness'].image:
-                row.label(text=_nodes['dks_pbr_texture_roughness'].image.filepath)
+            if 'dks_pbr_texture_normal' in _nodes and _nodes['dks_pbr_texture_normal'].image:
+                row.label(text=_nodes['dks_pbr_texture_normal'].image.filepath)
             else:
                 row.label(text='')
             box=row.row().split(factor=0.50)
-            box.operator(dks_pbr_texture_select.bl_idname, icon="FILE_FOLDER",text="", emboss=False).node_name='roughness'
-            box.operator(dks_pbr_texture_select_clr.bl_idname, icon="X",text="", emboss=False).node_name='roughness'
+            box.operator(dks_pbr_texture_select.bl_idname, icon="FILE_FOLDER",text="", emboss=False).node_name='normal'
+            box.operator(dks_pbr_texture_select_clr.bl_idname, icon="X",text="", emboss=False).node_name='normal'
+
+        if _dks_pbr_material_options.option_orm_node==False:
+
+            if 'dks_pbr_texture_roughness' in _nodes:
+            
+                # Roughness
+
+                col=layout.row(align=True)
+                box=col.row()
+                box.label(text=node_name['roughness']['label'] +':',icon='IMAGE_DATA')
+                row=col.row().split(factor=0.80)
+                if 'dks_pbr_texture_roughness' in _nodes and _nodes['dks_pbr_texture_roughness'].image:
+                    row.label(text=_nodes['dks_pbr_texture_roughness'].image.filepath)
+                else:
+                    row.label(text='')
+                box=row.row().split(factor=0.50)
+                box.operator(dks_pbr_texture_select.bl_idname, icon="FILE_FOLDER",text="", emboss=False).node_name='roughness'
+                box.operator(dks_pbr_texture_select_clr.bl_idname, icon="X",text="", emboss=False).node_name='roughness'
 
         if 'dks_pbr_texture_emissive' in _nodes:
 

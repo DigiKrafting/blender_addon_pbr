@@ -32,6 +32,10 @@ Prior to blender_addon_pbr 2.0.0
 
 2.79.0
 
+# Usage
+
+Create the initial nodes required by the addon by clicking on "Create - Auto Detect", "Create Metallic Roughness" or "Create Specular Gloss" buttons. "Create - Auto Detect" requires a folder to be selected first. Then the Base Color, Normal Maps, etc file open/select buttons will show and can be selected manually if required.
+
 # Installation
 
 Download either the tar.gz or zip from [https://github.com/DigiKrafting/blender_addon_pbr/releases/latest](https://github.com/DigiKrafting/blender_addon_pbr/releases/latest)
